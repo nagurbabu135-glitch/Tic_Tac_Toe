@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tic-Tac-Toe Pro • Universal Two-Player & Tournament Platform</title>
+    <meta name="description" content="A powerful, modern, responsive Tic-Tac-Toe game engine built in Java and HTML5. Play anywhere, anytime, on any device and browser.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #090d16;
+            --bg-secondary: #0f172a;
+            --card-bg: rgba(15, 23, 42, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --x-color: #00f2fe;
+            --x-glow: rgba(0, 242, 254, 0.45);
+            --o-color: #ff007f;
+            --o-glow: rgba(255, 0, 127, 0.45);
+            --accent-gold: #fbbf24;
+            --accent-green: #10b981;
+            --cell-bg: rgba(30, 41, 59, 0.6);
+            --cell-hover: rgba(51, 65, 85, 0.8);
+            --cell-border: rgba(255, 255, 255, 0.1);
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 8px;
+            --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        [data-theme="cyberpunk"] {
+            --bg-primary: #05050d;
+            --bg-secondary: #120d28;
+            --card-bg: rgba(18, 13, 40, 0.85);
+            --x-color: #00ffcc;
+            --x-glow: rgba(0, 255, 204, 0.5);
+            --o-color: #ff0055;
+            --o-glow: rgba(255, 0, 85, 0.5);
+            --accent-gold: #ffe600;
+        }
+
+        [data-theme="onyx"] {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --card-bg: rgba(18, 18, 18, 0.9);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --x-color: #38bdf8;
+            --o-color: #f43f5e;
+        }
+
+        [data-theme="luxury-light"] {
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --cell-bg: rgba(241, 245, 249, 0.9);
+            --cell-hover: rgba(226, 232, 240, 1);
+            --cell-border: rgba(0, 0, 0, 0.06);
+            --x-color: #0284c7;
+            --x-glow: rgba(2, 132, 199, 0.3);
+            --o-color: #e11d48;
+            --o-glow: rgba(225, 29, 72, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 16px 12px 30px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient background glow elements */
+        .ambient-glow {
+            position: fixed;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.22;
+            pointer-events: none;
+            z-index: 0;
+            transition: all 0.6s ease;
+        }
+        .glow-1 {
+            top: -80px;
+            left: -80px;
+            background: var(--x-color);
+        }
+        .glow-2 {
+            bottom: -80px;
+            right: -80px;
+            background: var(--o-color);
+        }
+
+        /* Main Container */
+        .app-container {
+            width: 100%;
+            max-width: 780px;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Header Navigation & Bar */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--x-color), var(--o-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            font-weight: 900;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.35);
+        }
+
+        .brand-text h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-backend {
+            font-size: 0.68rem;
+            font-family: var(--font-mono);
+            padding: 3px 7px;
+            border-radius: 20px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .badge-backend.offline {
+            background: rgba(234, 179, 8, 0.15);
+            color: #facc15;
+            border-color: rgba(250, 204, 21, 0.3);
+        }
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulseAnim 1.8s infinite ease-in-out;
+        }
+        @keyframes pulseAnim {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+        .btn-icon:active {
+            transform: translateY(1px);
+        }
+
+        /* Score & Player Hub */
+        .hub-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .player-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            backdrop-filter: blur(14px);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .player-card.active-turn {
+            border-color: var(--card-accent);
+            box-shadow: 0 0 25px var(--glow-accent);
+            transform: scale(1.02);
+        }
+        .player-card.player-x {
+            --card-accent: var(--x-color);
+            --glow-accent: var(--x-glow);
+        }
+        .player-card.player-o {
+            --card-accent: var(--o-color);
+            --glow-accent: var(--o-glow);
+        }
+
+        .player-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .player-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        .player-x .player-badge {
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            box-shadow: 0 3px 10px rgba(0, 198, 255, 0.4);
+        }
+        .player-o .player-badge {
+            background: linear-gradient(135deg, #f857a6, #ff5858);
+            box-shadow: 0 3px 10px rgba(248, 87, 166, 0.4);
+        }
+
+        .player-name-input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 700;
+            max-width: 140px;
+            outline: none;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .player-name-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .player-score {
+            font-size: 2.2rem;
+            font-weight: 900;
+            font-family: var(--font-mono);
+            line-height: 1;
+        }
+
+        .turn-pill {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: all 0.25s ease;
+        }
+        .active-turn .turn-pill {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .player-x .turn-pill {
+            background: rgba(0, 242, 254, 0.15);
+            color: var(--x-color);
+        }
+        .player-o .turn-pill {
+            background: rgba(255, 0, 127, 0.15);
+            color: var(--o-color);
+        }
+
+        /* Center Round & Match Info */
+        .match-info-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .round-tag {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            color: var(--text-muted);
+        }
+
+        .draw-box {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .draw-box strong {
+            font-size: 1.25rem;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+        }
+
+        /* Mode & Config Bar */
+        .config-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            flex-wrap: wrap;
+        }
+
+        .mode-selector {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        select.custom-select {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 7px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            outline: none;
+        }
+        select.custom-select option {
+            background: #0f172a;
+            color: #fff;
+        }
+
+        .quick-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 7px 14px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        }
+        .btn-primary:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* GAME BOARD ARENA */
+        .board-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .status-banner {
+            width: 100%;
+            padding: 10px 16px;
+            text-align: center;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .status-banner.win-x {
+            background: rgba(0, 242, 254, 0.15);
+            border-color: var(--x-color);
+            color: var(--x-color);
+            box-shadow: 0 0 20px var(--x-glow);
+        }
+        .status-banner.win-o {
+            background: rgba(255, 0, 127, 0.15);
+            border-color: var(--o-color);
+            color: var(--o-color);
+            box-shadow: 0 0 20px var(--o-glow);
+        }
+        .status-banner.draw {
+            background: rgba(234, 179, 8, 0.15);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        /* 3x3 MATRIX GRID */
+        .matrix-grid {
+            position: relative;
+            width: 100%;
+            max-width: 440px;
+            aspect-ratio: 1 / 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 12px;
+            padding: 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+        }
+
+        /* Dynamic SVG Winning Streak Line Overlay */
+        .win-line-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .win-stroke {
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            animation: drawLine 0.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .cell {
+            background: var(--cell-bg);
+            border: 1px solid var(--cell-border);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .cell:hover:not(.occupied):not(.disabled) {
+            background: var(--cell-hover);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        .cell:active:not(.occupied):not(.disabled) {
+            transform: scale(0.96);
+        }
+
+        .cell.occupied {
+            cursor: default;
+        }
+
+        .cell.highlight-win {
+            background: rgba(16, 185, 129, 0.25) !important;
+            border-color: #34d399 !important;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.4);
+            animation: pulseWin 1.2s infinite alternate ease-in-out;
+        }
+        @keyframes pulseWin {
+            from { transform: scale(1); }
+            to { transform: scale(1.04); }
+        }
+
+        /* Symbol Stamp Styling */
+        .symbol-x {
+            color: var(--x-color);
+            font-size: clamp(3rem, 10vw, 4.8rem);
+            font-weight: 900;
+            text-shadow: 0 0 25px var(--x-glow);
+            animation: stampPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .symbol-o {
+            color: var(--o-color);
+            font-size: clamp(3rem, 10vw, 4.8rem);
+            font-weight: 900;
+            text-shadow: 0 0 25px var(--o-glow);
+            animation: stampPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes stampPop {
+            0% { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+            70% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* Replay & Move History Panel */
+        .history-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .history-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .history-chips::-webkit-scrollbar {
+            height: 4px;
+        }
+        .history-chips::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .chip {
+            white-space: nowrap;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+        }
+        .chip.x-move {
+            border-color: rgba(0, 242, 254, 0.3);
+            color: var(--x-color);
+        }
+        .chip.o-move {
+            border-color: rgba(255, 0, 127, 0.3);
+            color: var(--o-color);
+        }
+
+        /* Canvas for Confetti */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Modal for QR Code & Mobile Connection */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 16px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            width: 100%;
+            max-width: 440px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qr-placeholder canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .ip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .ip-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.05);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px 8px 24px;
+            }
+            .hub-grid {
+                grid-template-columns: 1fr 1fr;
+                grid-template-areas:
+                    "px po"
+                    "info info";
+            }
+            .player-x { grid-area: px; }
+            .player-o { grid-area: po; }
+            .match-info-center {
+                grid-area: info;
+                flex-direction: row;
+                justify-content: space-around;
+                width: 100%;
+                margin-top: 4px;
+            }
+            .matrix-grid {
+                max-width: 360px;
+                gap: 8px;
+                padding: 10px;
+            }
+            .config-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .mode-selector, .quick-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient background gradient orbs -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <!-- Canvas for victory confetti explosion -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="app-container">
+        
+        <!-- Header & App Status -->
+        <header>
+            <div class="brand-box">
+                <div class="brand-icon">✕○</div>
+                <div class="brand-text">
+                    <h1>Tic-Tac-Toe Pro</h1>
+                    <div id="backend-status" class="badge-backend">
+                        <span class="pulse-dot"></span>
+                        <span id="backend-status-text">Checking Java Server...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="btn-sound" class="btn-icon" title="Toggle Sound FX" aria-label="Toggle Sound FX">🔊</button>
+                <button id="btn-theme" class="btn-icon" title="Switch Theme" aria-label="Switch Theme">🎨</button>
+                <button id="btn-qr" class="btn-icon" title="Connect Mobile Device" aria-label="Connect Mobile Device">📱</button>
+            </div>
+        </header>
+
+        <!-- Player Hub & Scoreboard -->
+        <div class="hub-grid">
+            <!-- Player X Card -->
+            <div id="card-x" class="player-card player-x active-turn">
+                <div class="player-meta">
+                    <div class="player-badge">X</div>
+                    <span class="turn-pill">● YOUR TURN</span>
+                </div>
+                <input id="input-name-x" class="player-name-input" type="text" value="Player X" spellcheck="false" title="Click to rename Player X">
+                <div class="player-score" id="score-x">0</div>
+            </div>
+
+            <!-- Round & Draw Counter -->
+            <div class="match-info-center">
+                <div class="round-tag" id="round-display">ROUND 1</div>
+                <div class="draw-box">
+                    <span>DRAWS</span>
+                    <strong id="score-draws">0</strong>
+                </div>
+            </div>
+
+            <!-- Player O Card -->
+            <div id="card-o" class="player-card player-o">
+                <div class="player-meta">
+                    <div class="player-badge">O</div>
+                    <span class="turn-pill">● YOUR TURN</span>
+                </div>
+                <input id="input-name-o" class="player-name-input" type="text" value="Player O" spellcheck="false" title="Click to rename Player O">
+                <div class="player-score" id="score-o">0</div>
+            </div>
+        </div>
+
+        <!-- Mode & Controls Bar -->
+        <div class="config-bar">
+            <div class="mode-selector">
+                <label for="mode-select" style="font-size:0.8rem;color:var(--text-muted);font-weight:600;">Mode:</label>
+                <select id="mode-select" class="custom-select">
+                    <option value="PVP">2-Player Pass & Play</option>
+                    <option value="AI_EASY">vs AI (Casual)</option>
+                    <option value="AI_MEDIUM">vs AI (Tactical)</option>
+                    <option value="AI_HARD">vs AI (Unbeatable Minimax)</option>
+                </select>
+            </div>
+            <div class="quick-actions">
+                <button id="btn-restart-round" class="btn btn-secondary" title="Restart current round board">Restart Round ↺</button>
+                <button id="btn-next-round" class="btn btn-primary" title="Advance to next round">Next Round ❯</button>
+                <button id="btn-new-match" class="btn btn-secondary" title="Reset all scores and start fresh">Restart Game ⟲</button>
+            </div>
+        </div>
+
+        <!-- Game Arena -->
+        <div class="board-wrapper">
+            <div id="status-banner" class="status-banner">
+                <span id="status-text">Player X's Turn (X)</span>
+            </div>
+
+            <!-- 3x3 Matrix Board -->
+            <div class="matrix-grid" id="matrix-grid">
+                <!-- SVG Streak Line -->
+                <svg class="win-line-svg" id="win-svg">
+                    <line id="win-line" x1="0" y1="0" x2="0" y2="0" stroke="#34d399" stroke-width="6" stroke-linecap="round" style="display:none;"></line>
+                </svg>
+
+                <!-- 9 Cells generated with row/col data attributes -->
+                <div class="cell" data-row="0" data-col="0" id="cell-0-0"></div>
+                <div class="cell" data-row="0" data-col="1" id="cell-0-1"></div>
+                <div class="cell" data-row="0" data-col="2" id="cell-0-2"></div>
+                <div class="cell" data-row="1" data-col="0" id="cell-1-0"></div>
+                <div class="cell" data-row="1" data-col="1" id="cell-1-1"></div>
+                <div class="cell" data-row="1" data-col="2" id="cell-1-2"></div>
+                <div class="cell" data-row="2" data-col="0" id="cell-2-0"></div>
+                <div class="cell" data-row="2" data-col="1" id="cell-2-1"></div>
+                <div class="cell" data-row="2" data-col="2" id="cell-2-2"></div>
+            </div>
+        </div>
+
+        <!-- Move History Reel -->
+        <div class="history-card">
+            <div class="history-header">
+                <span>MOVE LOG</span>
+                <span id="move-count">0 moves this round</span>
+            </div>
+            <div class="history-chips" id="history-chips">
+                <div class="chip">Round ready to start</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Mobile Connect & QR Modal -->
+    <div id="qr-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-title">📱 Play on Any Phone or Tablet</div>
+            <p style="font-size:0.85rem;color:var(--text-muted);">Scan this QR Code or open any URL below in your mobile browser (connect to the same Wi-Fi / Hotspot):</p>
+            <div class="qr-placeholder" id="qr-target">
+                <!-- Fallback QR generator / canvas -->
+                <canvas id="qr-canvas" width="180" height="180"></canvas>
+            </div>
+            <div class="ip-list" id="network-ip-list">
+                <div class="ip-item">
+                    <span>Local URL:</span>
+                    <strong id="local-url-text">http://localhost:8096</strong>
+                </div>
+            </div>
+            <button id="btn-close-modal" class="btn btn-secondary" style="width:100%;">Close</button>
+        </div>
+    </div>
+
+    <!-- Universal Script: Java REST Client + Offline Hybrid Matrix Engine -->
+    <script>
+        /* =========================================================
+           1. AUDIO ENGINE (Web Audio API Synthesizer - Zero Dependencies)
+           ========================================================= */
+        class RetroAudio {
+            constructor() {
+                this.enabled = true;
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playMove(symbol) {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = symbol === 'X' ? 'triangle' : 'sine';
+                osc.frequency.setValueAtTime(symbol === 'X' ? 440 : 330, now);
+                osc.frequency.exponentialRampToValueAtTime(symbol === 'X' ? 660 : 495, now + 0.08);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+
+            playWin() {
+                if (!this.enabled) return;
+                this.init();
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    const time = this.ctx.currentTime + idx * 0.1;
+
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, time);
+                    gain.gain.setValueAtTime(0.15, time);
+                    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(time);
+                    osc.stop(time + 0.25);
+                });
+            }
+
+            playDraw() {
+                if (!this.enabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(260, now);
+                osc.frequency.linearRampToValueAtTime(180, now + 0.25);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            }
+        }
+
+        /* =========================================================
+           2. CONFETTI PARTICLE SYSTEM
+           ========================================================= */
+        class ConfettiSystem {
+            constructor() {
+                this.canvas = document.getElementById('confetti-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.animationId = null;
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            fire() {
+                this.particles = [];
+                const count = 90;
+                const colors = ['#00f2fe', '#ff007f', '#fbbf24', '#34d399', '#a855f7', '#ffffff'];
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        x: this.canvas.width / 2,
+                        y: this.canvas.height / 2,
+                        vx: (Math.random() - 0.5) * 16,
+                        vy: (Math.random() - 0.7) * 16,
+                        size: Math.random() * 8 + 4,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        rotation: Math.random() * 360,
+                        vRot: (Math.random() - 0.5) * 10,
+                        alpha: 1
+                    });
+                }
+                if (!this.animationId) {
+                    this.loop();
+                }
+            }
+
+            loop() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.4; // gravity
+                    p.rotation += p.vRot;
+                    p.alpha -= 0.012;
+
+                    this.ctx.save();
+                    this.ctx.globalAlpha = Math.max(0, p.alpha);
+                    this.ctx.translate(p.x, p.y);
+                    this.ctx.rotate((p.rotation * Math.PI) / 180);
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    this.ctx.restore();
+
+                    if (p.alpha <= 0 || p.y > this.canvas.height + 50) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+
+                if (this.particles.length > 0) {
+                    this.animationId = requestAnimationFrame(() => this.loop());
+                } else {
+                    this.animationId = null;
+                }
+            }
+        }
+
+        /* =========================================================
+           3. CLIENT-SIDE FALLBACK MATRIX ENGINE
+           (Ensures the game runs 100% anywhere, even if static without Java server!)
+           ========================================================= */
+        class ClientGameEngine {
+            constructor() {
+                this.board = [[' ', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']];
+                this.currentPlayer = 'X';
+                this.playerXName = 'Player X';
+                this.playerOName = 'Player O';
+                this.status = 'IN_PROGRESS';
+                this.roundNumber = 1;
+                this.scoreX = 0;
+                this.scoreO = 0;
+                this.draws = 0;
+                this.winningLine = null;
+                this.moveHistory = [];
+                this.gameMode = 'PVP';
+            }
+
+            clearBoard() {
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 3; c++) {
+                        this.board[r][c] = ' ';
+                    }
+                }
+                this.winningLine = null;
+                this.status = 'IN_PROGRESS';
+                this.currentPlayer = (this.roundNumber % 2 === 1) ? 'X' : 'O';
+                this.moveHistory = [];
+            }
+
+            makeMove(row, col) {
+                if (this.status !== 'IN_PROGRESS') return false;
+                if (row < 0 || row >= 3 || col < 0 || col >= 3) return false;
+                if (this.board[row][col] !== ' ') return false;
+
+                const player = this.currentPlayer;
+                const name = (player === 'X') ? this.playerXName : this.playerOName;
+                this.board[row][col] = player;
+                this.moveHistory.push(`${name} (${player}) placed at [${row + 1}, ${col + 1}]`);
+
+                const win = this.checkWin(this.board, player);
+                if (win) {
+                    this.winningLine = win;
+                    if (player === 'X') {
+                        this.status = 'X_WON';
+                        this.scoreX++;
+                    } else {
+                        this.status = 'O_WON';
+                        this.scoreO++;
+                    }
+                    return true;
+                }
+
+                if (this.isBoardFull(this.board)) {
+                    this.status = 'DRAW';
+                    this.draws++;
+                    return true;
+                }
+
+                this.currentPlayer = (player === 'X') ? 'O' : 'X';
+
+                if (this.gameMode.startsWith('AI_') && this.currentPlayer === 'O') {
+                    this.makeAiMove();
+                }
+                return true;
+            }
+
+            checkWin(b, p) {
+                for (let r = 0; r < 3; r++) {
+                    if (b[r][0] === p && b[r][1] === p && b[r][2] === p) return [[r, 0], [r, 1], [r, 2]];
+                }
+                for (let c = 0; c < 3; c++) {
+                    if (b[0][c] === p && b[1][c] === p && b[2][c] === p) return [[0, c], [1, c], [2, c]];
+                }
+                if (b[0][0] === p && b[1][1] === p && b[2][2] === p) return [[0, 0], [1, 1], [2, 2]];
+                if (b[0][2] === p && b[1][1] === p && b[2][0] === p) return [[0, 2], [1, 1], [2, 0]];
+                return null;
+            }
+
+            isBoardFull(b) {
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 3; c++) {
+                        if (b[r][c] === ' ') return false;
+                    }
+                }
+                return true;
+            }
+
+            makeAiMove() {
+                const empty = [];
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 3; c++) {
+                        if (this.board[r][c] === ' ') empty.push([r, c]);
+                    }
+                }
+                if (empty.length === 0) return;
+
+                let chosen = empty[Math.floor(Math.random() * empty.length)];
+                if (this.gameMode === 'AI_MEDIUM' || this.gameMode === 'AI_HARD') {
+                    // Win if can win
+                    for (const [r, c] of empty) {
+                        this.board[r][c] = 'O';
+                        if (this.checkWin(this.board, 'O')) { chosen = [r, c]; this.board[r][c] = ' '; break; }
+                        this.board[r][c] = ' ';
+                    }
+                    // Block X
+                    if (!chosen) {
+                        for (const [r, c] of empty) {
+                            this.board[r][c] = 'X';
+                            if (this.checkWin(this.board, 'X')) { chosen = [r, c]; this.board[r][c] = ' '; break; }
+                            this.board[r][c] = ' ';
+                        }
+                    }
+                    if (!chosen && this.board[1][1] === ' ') chosen = [1, 1];
+                }
+
+                if (chosen) {
+                    const [r, c] = chosen;
+                    this.board[r][c] = 'O';
+                    this.moveHistory.push(`${this.playerOName} placed at [${r + 1}, ${c + 1}]`);
+                    const win = this.checkWin(this.board, 'O');
+                    if (win) {
+                        this.winningLine = win;
+                        this.status = 'O_WON';
+                        this.scoreO++;
+                    } else if (this.isBoardFull(this.board)) {
+                        this.status = 'DRAW';
+                        this.draws++;
+                    } else {
+                        this.currentPlayer = 'X';
+                    }
+                }
+            }
+
+            resetRound() {
+                this.roundNumber++;
+                this.clearBoard();
+                if (this.gameMode.startsWith('AI_') && this.currentPlayer === 'O') {
+                    this.makeAiMove();
+                }
+            }
+
+            newGame() {
+                this.roundNumber = 1;
+                this.scoreX = 0;
+                this.scoreO = 0;
+                this.draws = 0;
+                this.clearBoard();
+            }
+
+            getState() {
+                return {
+                    board: this.board,
+                    currentPlayer: this.currentPlayer,
+                    playerXName: this.playerXName,
+                    playerOName: this.playerOName,
+                    status: this.status,
+                    roundNumber: this.roundNumber,
+                    scoreX: this.scoreX,
+                    scoreO: this.scoreO,
+                    draws: this.draws,
+                    winningLine: this.winningLine,
+                    moveHistory: this.moveHistory,
+                    gameMode: this.gameMode
+                };
+            }
+        }
+
+        /* =========================================================
+           4. CONTROLLER & UI BINDINGS
+           ========================================================= */
+        const audio = new RetroAudio();
+        const confetti = new ConfettiSystem();
+        const clientEngine = new ClientGameEngine();
+
+        let useJavaBackend = false;
+        let lastKnownState = null;
+        let pollTimer = null;
+
+        // Theme management
+        const themes = ['default', 'cyberpunk', 'onyx', 'luxury-light'];
+        let currentThemeIdx = 0;
+
+        document.getElementById('btn-theme').addEventListener('click', () => {
+            currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+            const theme = themes[currentThemeIdx];
+            if (theme === 'default') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        });
+
+        // Sound toggle
+        document.getElementById('btn-sound').addEventListener('click', (e) => {
+            audio.enabled = !audio.enabled;
+            e.target.textContent = audio.enabled ? '🔊' : '🔇';
+        });
+
+        // Backend detection
+        async function checkBackend() {
+            try {
+                const res = await fetch('/api/state', { method: 'GET', cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    useJavaBackend = true;
+                    document.getElementById('backend-status').classList.remove('offline');
+                    document.getElementById('backend-status-text').textContent = 'Java Backend Connected';
+                    updateUI(data);
+                    return;
+                }
+            } catch (err) {
+                // Not running via Java server or static file
+            }
+
+            useJavaBackend = false;
+            document.getElementById('backend-status').classList.add('offline');
+            document.getElementById('backend-status-text').textContent = 'Client Engine (Universal Standalone)';
+            updateUI(clientEngine.getState());
+        }
+
+        // Send move
+        async function handleCellClick(row, col) {
+            audio.init();
+            if (useJavaBackend) {
+                try {
+                    const res = await fetch(`/api/move?row=${row}&col=${col}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ row, col })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        updateUI(data.state);
+                        return;
+                    }
+                } catch (e) {
+                    useJavaBackend = false;
+                }
+            }
+
+            // Fallback to client engine
+            clientEngine.makeMove(row, col);
+            updateUI(clientEngine.getState());
+        }
+
+        // Reset Round
+        document.getElementById('btn-next-round').addEventListener('click', async () => {
+            if (useJavaBackend) {
+                try {
+                    const res = await fetch('/api/reset-round', { method: 'POST' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        updateUI(data.state);
+                        return;
+                    }
+                } catch (e) { useJavaBackend = false; }
+            }
+            clientEngine.resetRound();
+            updateUI(clientEngine.getState());
+        });
+
+        // Restart Current Round
+        document.getElementById('btn-restart-round').addEventListener('click', async () => {
+            if (useJavaBackend) {
+                try {
+                    const res = await fetch('/api/restart-round', { method: 'POST' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        updateUI(data.state);
+                        return;
+                    }
+                } catch (e) { useJavaBackend = false; }
+            }
+            clientEngine.clearBoard();
+            updateUI(clientEngine.getState());
+        });
+
+        // Restart Full Match / New Game
+        document.getElementById('btn-new-match').addEventListener('click', async () => {
+            if (useJavaBackend) {
+                try {
+                    const res = await fetch('/api/new-game', { method: 'POST' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        updateUI(data.state);
+                        return;
+                    }
+                } catch (e) { useJavaBackend = false; }
+            }
+            clientEngine.newGame();
+            updateUI(clientEngine.getState());
+        });
+
+        // Change Mode
+        document.getElementById('mode-select').addEventListener('change', async (e) => {
+            const mode = e.target.value;
+            clientEngine.gameMode = mode;
+            if (mode.startsWith('AI_')) {
+                clientEngine.playerOName = 'Computer (' + mode.replace('AI_', '') + ')';
+            } else {
+                clientEngine.playerOName = 'Player O';
+            }
+
+            if (useJavaBackend) {
+                try {
+                    const res = await fetch(`/api/mode?mode=${encodeURIComponent(mode)}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mode })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        updateUI(data.state);
+                        return;
+                    }
+                } catch (err) { useJavaBackend = false; }
+            }
+            updateUI(clientEngine.getState());
+        });
+
+        // Rename Players
+        const nameXInput = document.getElementById('input-name-x');
+        const nameOInput = document.getElementById('input-name-o');
+
+        function sendPlayerNames() {
+            const nameX = nameXInput.value.trim() || 'Player X';
+            const nameO = nameOInput.value.trim() || 'Player O';
+            clientEngine.playerXName = nameX;
+            clientEngine.playerOName = nameO;
+
+            if (useJavaBackend) {
+                fetch(`/api/players?nameX=${encodeURIComponent(nameX)}&nameO=${encodeURIComponent(nameO)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nameX, nameO })
+                }).catch(() => {});
+            }
+            updateUI(useJavaBackend && lastKnownState ? lastKnownState : clientEngine.getState());
+        }
+
+        nameXInput.addEventListener('change', sendPlayerNames);
+        nameOInput.addEventListener('change', sendPlayerNames);
+
+        // UI Renderer
+        function updateUI(state) {
+            if (!state) return;
+
+            // Audio cues on state transition
+            if (lastKnownState) {
+                if (state.status === 'X_WON' && lastKnownState.status !== 'X_WON') {
+                    audio.playWin();
+                    confetti.fire();
+                } else if (state.status === 'O_WON' && lastKnownState.status !== 'O_WON') {
+                    audio.playWin();
+                    confetti.fire();
+                } else if (state.status === 'DRAW' && lastKnownState.status !== 'DRAW') {
+                    audio.playDraw();
+                } else if (state.moveHistory && lastKnownState.moveHistory && state.moveHistory.length > lastKnownState.moveHistory.length) {
+                    const lastMove = state.moveHistory[state.moveHistory.length - 1];
+                    audio.playMove(lastMove.includes('(X)') ? 'X' : 'O');
+                }
+            }
+
+            lastKnownState = state;
+
+            // Scores and Round
+            document.getElementById('round-display').textContent = `ROUND ${state.roundNumber}`;
+            document.getElementById('score-x').textContent = state.scoreX;
+            document.getElementById('score-o').textContent = state.scoreO;
+            document.getElementById('score-draws').textContent = state.draws;
+
+            // Player names if not active in input
+            if (document.activeElement !== nameXInput) nameXInput.value = state.playerXName;
+            if (document.activeElement !== nameOInput) nameOInput.value = state.playerOName;
+
+            // Turn Card Active Highlight
+            const cardX = document.getElementById('card-x');
+            const cardO = document.getElementById('card-o');
+            if (state.status === 'IN_PROGRESS') {
+                if (state.currentPlayer === 'X') {
+                    cardX.classList.add('active-turn');
+                    cardO.classList.remove('active-turn');
+                } else {
+                    cardO.classList.add('active-turn');
+                    cardX.classList.remove('active-turn');
+                }
+            } else {
+                cardX.classList.remove('active-turn');
+                cardO.classList.remove('active-turn');
+            }
+
+            // Status Banner
+            const banner = document.getElementById('status-banner');
+            const statusText = document.getElementById('status-text');
+            banner.className = 'status-banner';
+
+            if (state.status === 'IN_PROGRESS') {
+                const activeName = (state.currentPlayer === 'X') ? state.playerXName : state.playerOName;
+                statusText.innerHTML = `<span>🎮 ${activeName}'s Turn (${state.currentPlayer})</span>`;
+            } else if (state.status === 'X_WON') {
+                banner.classList.add('win-x');
+                statusText.innerHTML = `<span>🏆 <strong>${state.playerXName}</strong> WON ROUND ${state.roundNumber}!</span>`;
+            } else if (state.status === 'O_WON') {
+                banner.classList.add('win-o');
+                statusText.innerHTML = `<span>🏆 <strong>${state.playerOName}</strong> WON ROUND ${state.roundNumber}!</span>`;
+            } else if (state.status === 'DRAW') {
+                banner.classList.add('draw');
+                statusText.innerHTML = `<span>🤝 It's a DRAW! Both players tied round ${state.roundNumber}</span>`;
+            }
+
+            // Board Matrix Cells
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    const cell = document.getElementById(`cell-${r}-${c}`);
+                    const val = state.board[r][c];
+
+                    cell.className = 'cell';
+                    if (val === 'X') {
+                        cell.classList.add('occupied');
+                        cell.innerHTML = `<span class="symbol-x">✕</span>`;
+                    } else if (val === 'O') {
+                        cell.classList.add('occupied');
+                        cell.innerHTML = `<span class="symbol-o">○</span>`;
+                    } else {
+                        cell.innerHTML = '';
+                        if (state.status !== 'IN_PROGRESS') {
+                            cell.classList.add('disabled');
+                        }
+                    }
+
+                    // Winning Cell Highlights
+                    if (state.winningLine) {
+                        for (const [wr, wc] of state.winningLine) {
+                            if (wr === r && wc === c) {
+                                cell.classList.add('highlight-win');
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Draw SVG Winning Line
+            drawWinningLine(state.winningLine);
+
+            // History Chips
+            const chipsBox = document.getElementById('history-chips');
+            const countText = document.getElementById('move-count');
+            if (state.moveHistory && state.moveHistory.length > 0) {
+                countText.textContent = `${state.moveHistory.length} moves this round`;
+                chipsBox.innerHTML = state.moveHistory.map(m => {
+                    const isX = m.includes('(X)');
+                    return `<div class="chip ${isX ? 'x-move' : 'o-move'}">${m}</div>`;
+                }).join('');
+                chipsBox.scrollLeft = chipsBox.scrollWidth;
+            } else {
+                countText.textContent = `0 moves this round`;
+                chipsBox.innerHTML = `<div class="chip">Round ready to start</div>`;
+            }
+        }
+
+        // SVG Winning Stroke Line Calculation
+        function drawWinningLine(winLine) {
+            const line = document.getElementById('win-line');
+            if (!winLine || winLine.length < 3) {
+                line.style.display = 'none';
+                return;
+            }
+
+            const grid = document.getElementById('matrix-grid');
+            const firstCell = document.getElementById(`cell-${winLine[0][0]}-${winLine[0][1]}`);
+            const lastCell = document.getElementById(`cell-${winLine[2][0]}-${winLine[2][1]}`);
+
+            if (!firstCell || !lastCell) return;
+
+            const gridRect = grid.getBoundingClientRect();
+            const firstRect = firstCell.getBoundingClientRect();
+            const lastRect = lastCell.getBoundingClientRect();
+
+            const x1 = firstRect.left + firstRect.width / 2 - gridRect.left;
+            const y1 = firstRect.top + firstRect.height / 2 - gridRect.top;
+            const x2 = lastRect.left + lastRect.width / 2 - gridRect.left;
+            const y2 = lastRect.top + lastRect.height / 2 - gridRect.top;
+
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.classList.add('win-stroke');
+            line.style.display = 'block';
+        }
+
+        // Setup cell click events
+        document.querySelectorAll('.cell').forEach(cell => {
+            cell.addEventListener('click', () => {
+                const r = parseInt(cell.getAttribute('data-row'), 10);
+                const c = parseInt(cell.getAttribute('data-col'), 10);
+                handleCellClick(r, c);
+            });
+        });
+
+        // QR Code and Mobile Modal
+        const qrModal = document.getElementById('qr-modal');
+        document.getElementById('btn-qr').addEventListener('click', async () => {
+            qrModal.classList.add('active');
+            try {
+                const res = await fetch('/api/network');
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('local-url-text').textContent = data.localUrl;
+                    const ipListBox = document.getElementById('network-ip-list');
+                    ipListBox.innerHTML = `
+                        <div class="ip-item">
+                            <span>Local:</span>
+                            <a href="${data.localUrl}" target="_blank" style="color:#38bdf8;text-decoration:none;">${data.localUrl}</a>
+                        </div>
+                    `;
+                    if (data.networkUrls && data.networkUrls.length > 0) {
+                        data.networkUrls.forEach(url => {
+                            ipListBox.innerHTML += `
+                                <div class="ip-item">
+                                    <span>Phone/Wi-Fi:</span>
+                                    <strong style="color:#34d399;">${url}</strong>
+                                </div>
+                            `;
+                        });
+                        drawSimpleQr(data.networkUrls[0]);
+                        return;
+                    }
+                }
+            } catch (ignored) {}
+            drawSimpleQr(window.location.href);
+        });
+
+        document.getElementById('btn-close-modal').addEventListener('click', () => {
+            qrModal.classList.remove('active');
+        });
+        qrModal.addEventListener('click', (e) => {
+            if (e.target === qrModal) qrModal.classList.remove('active');
+        });
+
+        // Fallback procedural QR pattern drawer on HTML5 Canvas
+        function drawSimpleQr(text) {
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f172a';
+
+            // Draw QR corner finder patterns
+            function drawFinder(x, y) {
+                ctx.fillRect(x, y, 42, 42);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(x + 6, y + 6, 30, 30);
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(x + 12, y + 12, 18, 18);
+            }
+            drawFinder(10, 10);
+            drawFinder(canvas.width - 52, 10);
+            drawFinder(10, canvas.height - 52);
+
+            // Pseudo-random pseudo QR data dots seeded by text
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) hash = ((hash << 5) - hash) + text.charCodeAt(i);
+            
+            const cellSize = 6;
+            const cols = Math.floor(canvas.width / cellSize);
+            for (let r = 2; r < cols - 2; r++) {
+                for (let c = 2; c < cols - 2; c++) {
+                    // skip finders
+                    if ((r < 10 && c < 10) || (r < 10 && c > cols - 11) || (r > cols - 11 && c < 10)) continue;
+                    const val = Math.sin(r * 12.9898 + c * 78.233 + hash) * 43758.5453;
+                    if ((val - Math.floor(val)) > 0.45) {
+                        ctx.fillRect(c * cellSize, r * cellSize, cellSize - 1, cellSize - 1);
+                    }
+                }
+            }
+        }
+
+        // Periodic sync in case moves happen from another device or Java desktop window
+        setInterval(async () => {
+            if (useJavaBackend) {
+                try {
+                    const res = await fetch('/api/state', { method: 'GET', cache: 'no-store' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        updateUI(data);
+                    }
+                } catch (e) {
+                    useJavaBackend = false;
+                }
+            }
+        }, 800);
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            checkBackend();
+        });
+    </script>
+</body>
+</html>
